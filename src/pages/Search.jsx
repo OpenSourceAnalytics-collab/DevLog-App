@@ -10,33 +10,60 @@ export default function Search() {
   const [selectedTag, setSelectedTag] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [searchError, setSearchError] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const filteredEntries = useMemo(() => {
     let filtered = [...entries];
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (entry) =>
-          entry.message.toLowerCase().includes(query) ||
-          entry.tags.some((tag) => tag.toLowerCase().includes(query))
-      );
+    // Date range filter
+    const start = startDate ? new Date(`${startDate}T00:00:00`) : null;
+    const end = endDate ? new Date(`${endDate}T23:59:59.999`) : null;
+
+    if (start) {
+      filtered = filtered.filter((entry) => entry.timestamp >= start);
+    }
+    if (end) {
+      filtered = filtered.filter((entry) => entry.timestamp <= end);
+    }
+
+    // Full-text tokenized search across message, tags, and category
+    const tokens = searchQuery
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (tokens.length > 0) {
+      filtered = filtered.filter((entry) => {
+        const message = entry.message.toLowerCase();
+        const category = entry.category?.toLowerCase() || '';
+        const tags = entry.tags.map((t) => t.toLowerCase());
+
+        return tokens.every((token) =>
+          message.includes(token) ||
+          category.includes(token) ||
+          tags.some((tag) => tag.includes(token))
+        );
+      });
     }
 
     if (selectedTag) {
+      const tag = selectedTag.toLowerCase();
       filtered = filtered.filter((entry) =>
-        entry.tags.some((tag) => tag.toLowerCase() === selectedTag.toLowerCase())
+        entry.tags.some((t) => t.toLowerCase() === tag)
       );
     }
 
     if (selectedCategory) {
+      const category = selectedCategory.toLowerCase();
       filtered = filtered.filter(
-        (entry) => entry.category?.toLowerCase() === selectedCategory.toLowerCase()
+        (entry) => entry.category?.toLowerCase() === category
       );
     }
 
     return filtered.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  }, [entries, searchQuery, selectedTag, selectedCategory]);
+  }, [entries, searchQuery, selectedTag, selectedCategory, startDate, endDate]);
 
   const allTags = useMemo(() => {
     const tagSet = new Set();
@@ -76,8 +103,12 @@ export default function Search() {
                 onChange={(e) => {
                   const value = e.target.value;
                   if (value.length <= MAX_LENGTHS.MESSAGE) {
+                    if (!value.trim()) {
+                      setSearchQuery(value);
+                      setSearchError('');
+                      return;
+                    }
                     try {
-                      // Validate input
                       validateAndSanitizeText(value, MAX_LENGTHS.MESSAGE);
                       setSearchQuery(value);
                       setSearchError('');
@@ -132,6 +163,51 @@ export default function Search() {
                 ))}
               </select>
             </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Start date
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                max={endDate || undefined}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                End date
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                min={startDate || undefined}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedTag('');
+                setSelectedCategory('');
+                setStartDate('');
+                setEndDate('');
+                setSearchError('');
+              }}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+            >
+              Clear filters
+            </button>
           </div>
         </div>
       </div>
