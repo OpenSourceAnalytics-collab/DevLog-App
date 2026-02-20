@@ -1,0 +1,18 @@
+# Render Blueprint - single Web Service (API + frontend)
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: devlog
+    runtime: node
+    region: oregon
+
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGIN
+        sync: false
+        # Set in Render dashboard to your service URL, e.g. https://devlog-xxxx.onrender.com
