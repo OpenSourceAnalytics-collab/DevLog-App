@@ -95,12 +95,15 @@ app.get('/health', (req, res) => {
 app.use('/api/entries', writeLimiter, entriesRoutes);
 
 // Production: serve built frontend and SPA fallback
+// Use process.cwd() so dist is found from Render's working directory (repo root)
 if (config.nodeEnv === 'production') {
-  const distPath = path.join(__dirname, '..', 'dist');
+  const distPath = path.join(process.cwd(), 'dist');
   app.use(express.static(distPath));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/health')) return next();
-    res.sendFile(path.join(distPath, 'index.html'));
+    res.sendFile(path.join(distPath, 'index.html'), (err) => {
+      if (err) next(err);
+    });
   });
 }
 
