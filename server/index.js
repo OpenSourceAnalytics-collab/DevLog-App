@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -94,14 +95,16 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/entries', writeLimiter, entriesRoutes);
 
-// Production: serve built frontend and SPA fallback
-// Use process.cwd() so dist is found from Render's working directory (repo root)
-if (config.nodeEnv === 'production') {
-  const distPath = path.join(process.cwd(), 'dist');
+// Serve built frontend when dist exists (e.g. after build on Render)
+// Does not depend on NODE_ENV so it works even if host doesn't set it
+const distPath = path.join(process.cwd(), 'dist');
+const distExists = fs.existsSync(distPath);
+const indexPath = path.join(distPath, 'index.html');
+if (distExists && fs.existsSync(indexPath)) {
   app.use(express.static(distPath));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/health')) return next();
-    res.sendFile(path.join(distPath, 'index.html'), (err) => {
+    res.sendFile(indexPath, (err) => {
       if (err) next(err);
     });
   });
