@@ -10,10 +10,12 @@ A web app for developers to track daily work, ideas, and notes. React frontend +
 
 ## Get started
 
-- Node 18+
+- Node 18+ (see `.nvmrc`)
 - `npm install`
 - `npm run dev` — starts API (port 3000) and client (port 5173)
 - Open http://localhost:5173
+
+**Before pushing:** run `npm run lint`, `npm test`, and `npm run build` so CI stays green.
 
 ## Scripts
 
@@ -36,6 +38,10 @@ A web app for developers to track daily work, ideas, and notes. React frontend +
 ## Security
 
 Input validation/sanitization, rate limiting, Helmet headers, CSP, secure IDs. Run `npm audit` and `npm run security:check` regularly.
+
+## Repo setup
+
+- **Protect `main`:** In GitHub → Settings → Branches, add a rule for `main` and enable "Require status checks to pass" so the red X must be fixed before merging.
 
 ## Deploy to Render
 
