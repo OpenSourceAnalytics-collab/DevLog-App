@@ -38,15 +38,14 @@ export default function Home() {
     );
   }
 
-  // Group entries by date
-  const entriesByDate = sortedEntries.reduce((acc, entry) => {
+  // Group entries by date (Map avoids dynamic key injection warning)
+  const entriesByDateMap = new Map();
+  for (const entry of sortedEntries) {
     const dateKey = format(entry.timestamp, 'yyyy-MM-dd');
-    if (!acc[dateKey]) {
-      acc[dateKey] = [];
-    }
-    acc[dateKey].push(entry);
-    return acc;
-  }, {});
+    if (!entriesByDateMap.has(dateKey)) entriesByDateMap.set(dateKey, []);
+    entriesByDateMap.get(dateKey).push(entry);
+  }
+  const entriesByDate = Object.fromEntries(entriesByDateMap);
 
   return (
     <div>

@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useLogs } from '@/context/LogContext.jsx';
 import { api } from '@/utils/api.js';
 import { BarChart3, FileText, Tag, Folder } from 'lucide-react';

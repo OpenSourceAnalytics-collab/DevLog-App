@@ -9,7 +9,6 @@ module.exports = {
     'eslint:recommended',
     'plugin:react/recommended',
     'plugin:react-hooks/recommended',
-    'plugin:security/recommended',
   ],
   ignorePatterns: ['dist', '.eslintrc.cjs', 'node_modules', 'server'],
   parserOptions: {
